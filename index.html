@@ -1,0 +1,62 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <script src="./wasm_exec.js"></script>
+</head>
+<body>
+<video id="video" width="400" height="400"></video>
+<canvas id="canvas" width="400" height="400" style="display: none"></canvas>
+<canvas id="canvas-pixelate" width="400" height="400"></canvas>
+<script>
+    const canvas = document.getElementById('canvas')
+    const ctx = canvas.getContext('2d')
+    const video = document.getElementById('video')
+
+    async function showStream() {
+        video.srcObject = await this._getStream()
+        video.addEventListener('loadedmetadata', () => {
+            video.play()
+            window.requestAnimationFrame(() => sync(video, ctx))
+        })
+    }
+
+    function _getStream() {
+        const config = {
+            video: {
+                audio: false,
+                facingMode: { exact: 'environment' }
+            }
+        }
+        return navigator.mediaDevices.getUserMedia(config)
+    }
+
+    function sync(video, ctx) {
+        ctx.drawImage(video, 0, 0, 400, 400)
+        // go.run(goResult.instance)
+        window.requestAnimationFrame(() => sync(video, ctx))
+    }
+
+    const go = new Go();
+    let goResult
+
+    WebAssembly.instantiateStreaming(fetch("./main.wasm"), go.importObject).then((result) => {
+        goResult = result
+        showStream()
+        go.run(result.instance);
+    });
+    // const image = new Image()
+    // image.src = './sample.jpg'
+    // image.addEventListener('load', () => {
+    //     ctx.drawImage(image, 0, 0, 400, 400)
+    //
+    //     WebAssembly.instantiateStreaming(fetch("./main.wasm"), go.importObject).then((result) => {
+    //         goResult = result
+    //         showStream()
+    //         // go.run(result.instance);
+    //     });
+    // })
+</script>
+<script>
+</script>
+</body>
+</html>
