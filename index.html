@@ -2,11 +2,17 @@
 <head>
     <meta charset="utf-8"/>
     <script src="./wasm_exec.js"></script>
+    <style type="text/css">
+        #canvas-pixelate {
+            width: 600px;
+            height: 600px;
+        }
+    </style>
 </head>
 <body>
-<video id="video" width="400" height="400"></video>
-<canvas id="canvas" width="400" height="400" style="display: none"></canvas>
-<canvas id="canvas-pixelate" width="400" height="400"></canvas>
+<video id="video" width="200" height="200"></video>
+<canvas id="canvas" width="200" height="200" style="display: none"></canvas>
+<canvas id="canvas-pixelate" width="200" height="200"></canvas>
 <script>
     const canvas = document.getElementById('canvas')
     const ctx = canvas.getContext('2d')
@@ -24,6 +30,8 @@
         const config = {
             video: {
                 audio: false,
+                width: 200,
+                height: 200
                 // facingMode: { exact: 'environment' }
             }
         }
@@ -31,7 +39,7 @@
     }
 
     function sync(video, ctx) {
-        ctx.drawImage(video, 0, 0, 400, 400)
+        ctx.drawImage(video, 0, 0, 200, 200)
         // go.run(goResult.instance)
         window.requestAnimationFrame(() => sync(video, ctx))
     }
@@ -44,19 +52,6 @@
         showStream()
         go.run(result.instance);
     });
-    // const image = new Image()
-    // image.src = './sample.jpg'
-    // image.addEventListener('load', () => {
-    //     ctx.drawImage(image, 0, 0, 400, 400)
-    //
-    //     WebAssembly.instantiateStreaming(fetch("./main.wasm"), go.importObject).then((result) => {
-    //         goResult = result
-    //         showStream()
-    //         // go.run(result.instance);
-    //     });
-    // })
-</script>
-<script>
 </script>
 </body>
 </html>
