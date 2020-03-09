@@ -21,6 +21,7 @@
       margin: 0;
       padding: 0;
       width: 100%;
+      font-family: 'Pixelated-Princess', monospace;
     }
     h1 {
       font-family: 'Pixelated-Princess', monospace;
@@ -31,7 +32,7 @@
       padding: 10px;
       line-height: 0.8;
     }
-    #canvas-pixelate {
+    #pixelated-canvas {
       display: block;
       margin: auto;
       width: 100%;
@@ -71,8 +72,14 @@
     #camera-control button:after {
       right: -10px
     }
+    #loading {
+      font-size: 32px;
+      text-align: center;
+      padding: 50px 0 0 0;
+    }
     p {
       text-align: center;
+      font-size: 32px;
     }
   </style>
 </head>
@@ -84,7 +91,8 @@
   <button id="btn-front-camera">front</button>
   <button id="btn-back-camera">back</button>
 </div>
-<canvas id="canvas-pixelate" width="200" height="200"></canvas>
+<div id="loading">loading...</div>
+<canvas id="pixelated-canvas" width="200" height="200"></canvas>
 <p>Feedback to <a href="https://twitter.com/zaru">@zaru</a></p>
 
 <script>
@@ -134,9 +142,11 @@
   const go = new Go();
   WebAssembly.instantiateStreaming(fetch("./main.wasm"), go.importObject).then((result) => {
     showStream()
-    go.run(result.instance);
-  });
+    document.getElementById('loading').style.display = 'none'
+    go.run(result.instance)
+  })
 </script>
+
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-160043633-1"></script>
 <script>
