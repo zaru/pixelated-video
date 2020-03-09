@@ -1,57 +1,150 @@
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <script src="./wasm_exec.js"></script>
-    <style type="text/css">
-        #canvas-pixelate {
-            width: 600px;
-            height: 600px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link href="https://fonts.googleapis.com/css?family=VT323&display=swap" rel="stylesheet">
+  <title>Pixelated video</title>
+  <script src="./wasm_exec.js"></script>
+  <style type="text/css">
+    @font-face {
+      font-family: 'Pixelated-Princess';
+      src: url('./fonts/pixelated_princess.eot');
+      src: url('./fonts/pixelated_princess.eot?#iefix') format('embedded-opentype'),
+      url('./fonts/pixelated_princess.woff') format('woff'),
+      url('./fonts/pixelated_princess.ttf') format('truetype'),
+      url('./fonts/pixelated_princess.svg#Pixelated-Princess') format('svg');
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+    }
+    h1 {
+      font-family: 'Pixelated-Princess', monospace;
+      font-size: 64px;
+      font-weight: normal;
+      text-align: center;
+      margin: 0;
+      padding: 10px;
+      line-height: 0.8;
+    }
+    #canvas-pixelate {
+      display: block;
+      margin: auto;
+      width: 100%;
+      height: 100%;
+      max-width: 600px;
+      max-height: 600px;
+    }
+    #camera-control {
+      text-align: center;
+      padding: 10px 0;
+    }
+    #camera-control button{
+      font-family: 'Pixelated-Princess', monospace;
+      font-weight: normal;
+      font-size: 32px;
+      margin: 0 20px;
+      padding: 5px 15px;
+      border-top: 10px solid black;
+      border-bottom: 10px solid black;
+      position: relative;
+    }
+    #camera-control button:hover {
+      background-color: #ddd;
+      cursor: pointer;
+    }
+    #camera-control button:before, #camera-control button:after {
+      content: '';
+      top: 0;
+      width: 10px;
+      height: 100%;
+      position: absolute;
+      background: #000;
+    }
+    #camera-control button:before {
+      left: -10px
+    }
+    #camera-control button:after {
+      right: -10px
+    }
+    p {
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-<video id="video" width="200" height="200"></video>
+<h1>Pixelated video</h1>
+<video id="video" width="200" height="200" style="display: none"></video>
 <canvas id="canvas" width="200" height="200" style="display: none"></canvas>
+<div id="camera-control">
+  <button id="btn-front-camera">front</button>
+  <button id="btn-back-camera">back</button>
+</div>
 <canvas id="canvas-pixelate" width="200" height="200"></canvas>
+<p>Feedback to <a href="https://twitter.com/zaru">@zaru</a></p>
+
 <script>
-    const canvas = document.getElementById('canvas')
-    const ctx = canvas.getContext('2d')
-    const video = document.getElementById('video')
+  const canvas = document.getElementById('canvas')
+  const ctx = canvas.getContext('2d')
+  const video = document.getElementById('video')
 
-    async function showStream() {
-        video.srcObject = await this._getStream()
-        video.addEventListener('loadedmetadata', () => {
-            video.play()
-            window.requestAnimationFrame(() => sync(video, ctx))
-        })
+  async function showStream() {
+    setCamera()
+    video.addEventListener('loadedmetadata', () => {
+      video.play()
+      window.requestAnimationFrame(() => sync(video, ctx))
+    })
+  }
+
+  document.getElementById('btn-front-camera').addEventListener('click', () => {
+    setCamera()
+  })
+
+  document.getElementById('btn-back-camera').addEventListener('click', () => {
+    setCamera(true)
+  })
+
+  async function setCamera(backCam) {
+    video.srcObject = await this._getStream(backCam)
+  }
+
+  function _getStream(backCam) {
+    const config = {
+      video: {
+        audio: false,
+        width: 200,
+        height: 200
+      }
     }
-
-    function _getStream() {
-        const config = {
-            video: {
-                audio: false,
-                width: 200,
-                height: 200
-                // facingMode: { exact: 'environment' }
-            }
-        }
-        return navigator.mediaDevices.getUserMedia(config)
+    if (backCam) {
+      config.video['facingMode'] = { exact: 'environment' }
     }
+    return navigator.mediaDevices.getUserMedia(config)
+  }
 
-    function sync(video, ctx) {
-        ctx.drawImage(video, 0, 0, 200, 200)
-        // go.run(goResult.instance)
-        window.requestAnimationFrame(() => sync(video, ctx))
-    }
+  function sync(video, ctx) {
+    ctx.drawImage(video, 0, 0, 200, 200)
+    window.requestAnimationFrame(() => sync(video, ctx))
+  }
 
-    const go = new Go();
-    let goResult
+  const go = new Go();
+  WebAssembly.instantiateStreaming(fetch("./main.wasm"), go.importObject).then((result) => {
+    showStream()
+    go.run(result.instance);
+  });
+</script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-160043633-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-    WebAssembly.instantiateStreaming(fetch("./main.wasm"), go.importObject).then((result) => {
-        goResult = result
-        showStream()
-        go.run(result.instance);
-    });
+  gtag('config', 'UA-160043633-1');
 </script>
 </body>
 </html>
